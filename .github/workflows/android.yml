@@ -1,0 +1,64 @@
+name: Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install
+        run: npm ci
+
+      - name: Test (the APK is only built if every test passes)
+        run: npm test
+
+      - name: Build web app and copy into Android project
+        run: |
+          npm run build
+          npx cap sync android
+
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Name the APK
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          cp android/app/build/outputs/apk/release/app-release.apk "NurseCalcPro-$VERSION.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NurseCalcPro-apk
+          path: NurseCalcPro-*.apk
+
+      - name: Publish as the latest download
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}-build${{ github.run_number }}
+          name: NurseCalc Pro ${{ env.VERSION }} (build ${{ github.run_number }})
+          make_latest: true
+          files: NurseCalcPro-*.apk
+          body: |
+            Android test build. Open this page on your phone, tap the .apk, and allow "Install unknown apps" when asked.
+            Signed with a public test key — for testing and sideloading only, not for the Play Store.

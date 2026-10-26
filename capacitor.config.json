@@ -1,0 +1,6 @@
+{
+  "appId": "com.nursecalcpro.app",
+  "appName": "NurseCalc Pro",
+  "webDir": "dist",
+  "android": { "allowMixedContent": false, "webContentsDebuggingEnabled": false }
+}
