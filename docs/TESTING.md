@@ -24,7 +24,7 @@ Only results that were actually produced are listed. Anything not run is in §5.
 
 ## 2. Android build verification (GitHub Actions, `scripts/ci/verify-android.sh`)
 
-Run [40963732883](https://github.com/moralesdaren5241-hue/nursecalc-pro/actions/runs/40963732883) — **0 failed checks**:
+Run [40965023173](https://github.com/moralesdaren5241-hue/nursecalc-pro/actions/runs/40965023173) (commit fe64d14; also 40963732883 on fa260b0) — **0 failed checks**:
 
 - `app-release.aab` (3.26 MB), `app-release-unsigned.apk`, `app-sideload.apk` produced by Gradle
 - applicationId `com.nursecalcpro.app`, versionName 1.2.0, versionCode 4, targetSdk 36, minSdk 24, label "NurseCalc Pro"
