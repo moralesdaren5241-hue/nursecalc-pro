@@ -1,9 +1,9 @@
-NurseCalc Pro Android build verification — 2026-10-29T15:13:47Z
+NurseCalc Pro Android build verification — 2026-10-29T22:12:55Z
 build-tools: 37.0.0; expected versionName: 1.2.0
 
-PASS  exists: android/app/build/outputs/bundle/release/app-release.aab (3253628 bytes)
-PASS  exists: android/app/build/outputs/apk/sideload/app-sideload.apk (3495598 bytes)
-PASS  exists: android/app/build/outputs/apk/release/app-release-unsigned.apk (3487406 bytes)
+PASS  exists: android/app/build/outputs/bundle/release/app-release.aab (3255089 bytes)
+PASS  exists: android/app/build/outputs/apk/sideload/app-sideload.apk (3497010 bytes)
+PASS  exists: android/app/build/outputs/apk/release/app-release-unsigned.apk (3488818 bytes)
 
 package: name='com.nursecalcpro.app' versionCode='4' versionName='1.2.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
 targetSdkVersion:'36'
@@ -12,7 +12,7 @@ application-label:'NurseCalc Pro'
 PASS  applicationId com.nursecalcpro.app
 PASS  versionName matches package.json (1.2.0)
 PASS  targetSdkVersion 36
-FAIL  minSdkVersion 24
+PASS  minSdkVersion 24
 PASS  app label NurseCalc Pro
 PASS  not debuggable
 PASS  no INTERNET permission
@@ -26,10 +26,12 @@ PASS  bridge logging disabled in bundled config
 PASS  no localhost/dev-server URLs in the web bundle
 PASS  no remote script or font loads in the web bundle
 
-FAIL  download bundletool to inspect the AAB manifest
+PASS  AAB targetSdkVersion 36
+PASS  AAB versionName 1.2.0
+AAB versionCode: versionCode="4"
 
 PASS  sideload APK signature verifies
 PASS  AAB is unsigned when no upload key is configured (never test-signed)
 AAB signing: UNSIGNED — add the upload-key secrets (docs/ANDROID_RELEASE.md) to produce an uploadable AAB
 
-Result: 2 failed check(s)
+Result: 0 failed check(s)

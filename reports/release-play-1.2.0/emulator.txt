@@ -1,7 +1,7 @@
-NurseCalc Pro emulator smoke test — 2026-10-29T15:15:48Z
+NurseCalc Pro emulator smoke test — 2026-10-29T22:15:00Z
 Device: sdk_gphone64_x86_64, Android 16 (API 36)
 WebView:   Current WebView package (name, version): (com.google.android.webview, 133.0.6943.137)
-APK: apk/app-sideload.apk (3495598 bytes)
+APK: apk/app-sideload.apk (3497010 bytes)
 
 PASS  install APK
 
@@ -16,8 +16,8 @@ Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
 Status: ok
 LaunchState: COLD
 Activity: com.nursecalcpro.app/.MainActivity
-TotalTime: 6275
-WaitTime: 6284
+TotalTime: 3331
+WaitTime: 3370
 Complete
 PASS  cold launch reports Status: ok
 PASS  home screen rendered (web content visible)
@@ -38,7 +38,7 @@ PASS  back from calculator returns to Home
 PASS  tap Settings tab
       screenshot 04-settings.png
 PASS  back from Settings tab root returns to Home (does not exit)
-FAIL  app still in foreground after back to Home
+PASS  app still in foreground after back to Home
 PASS  back at Home root exits the app
 
 -- Background and resume
@@ -46,8 +46,8 @@ Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
 Status: ok
 LaunchState: WARM
 Activity: com.nursecalcpro.app/.MainActivity
-TotalTime: 1218
-WaitTime: 1222
+TotalTime: 818
+WaitTime: 827
 Complete
 PASS  relaunch
 PASS  app left foreground on HOME
@@ -56,8 +56,8 @@ Warning: Activity not started, its current task has been brought to the front
 Status: ok
 LaunchState: HOT
 Activity: com.nursecalcpro.app/.MainActivity
-TotalTime: 513
-WaitTime: 538
+TotalTime: 270
+WaitTime: 280
 Complete
 PASS  resume from background
 PASS  content intact after resume
@@ -67,8 +67,8 @@ Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
 Status: ok
 LaunchState: COLD
 Activity: com.nursecalcpro.app/.MainActivity
-TotalTime: 2104
-WaitTime: 2108
+TotalTime: 921
+WaitTime: 922
 Complete
 PASS  launch after force-stop
 PASS  content after restart
@@ -83,8 +83,8 @@ Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
 Status: ok
 LaunchState: COLD
 Activity: com.nursecalcpro.app/.MainActivity
-TotalTime: 1465
-WaitTime: 1516
+TotalTime: 836
+WaitTime: 840
 Complete
 PASS  dark mode renders
       screenshot 07-dark.png
@@ -93,4 +93,4 @@ PASS  dark mode renders
 PASS  no crashes or ANRs in logcat
 PASS  web console not logged in release (loggingBehavior none)
 
-Result: 1 failed check(s)
+Result: 0 failed check(s)
