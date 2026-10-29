@@ -9,3 +9,15 @@ android/local.properties
 android/app/src/main/assets/public/
 android/capacitor-cordova-android-plugins/build/
 .DS_Store
+ci-report/
+
+# Signing material — never commit the Play upload key or its passwords.
+# (android/app/nursecalc-test.keystore is a PUBLIC test key, committed on purpose.)
+android/keystore.properties
+*.jks
+upload-keystore*
+*.keystore
+!android/app/nursecalc-test.keystore
+.env
+.env.*
+!.env.example

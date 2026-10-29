@@ -8,7 +8,8 @@ import { CalcRow, Disclaimer, Empty, Header, SHORT, Tile } from '../components/c
 import { useNav, useStore } from '../nav';
 import { DailyCard } from './Learn';
 
-export const VERSION = '1.1.1';
+export const VERSION = '1.2.0';
+export const PRIVACY_URL = 'https://github.com/moralesdaren5241-hue/nursecalc-pro/blob/main/PRIVACY.md';
 
 function greeting(name: string) {
   const h = new Date().getHours();
@@ -292,6 +293,12 @@ export function About() {
           </ul>
           <h2 className="h3">Clinical content status</h2>
           <p>Formulas are implemented from standard literature and covered by automated arithmetic tests. Every clinical reference is marked “awaiting clinical review” until a qualified reviewer signs it off.</p>
+        </section>
+        <section className="card" aria-labelledby="privacy-h">
+          <h2 className="h3" id="privacy-h">Privacy policy</h2>
+          <p>NurseCalc Pro does not collect, transmit or share any personal or health data. It has no account, no analytics, no advertising and no third-party SDKs, and the Android app does not request internet access. Calculator inputs and results stay in memory and are discarded when you leave the screen.</p>
+          <p>Only your settings (theme, text size, units, optional greeting name), favorites, recently opened calculator names, formula bookmarks and study progress are stored, on this device only. Delete them at any time in Settings → Privacy and data, or by uninstalling the app.</p>
+          <p><a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer">Read the full privacy policy</a></p>
         </section>
       </main>
     </>
