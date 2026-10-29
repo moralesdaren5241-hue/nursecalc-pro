@@ -1,0 +1,4 @@
+commit: 0e064f444fb12fd06a90bd310aa9c5915e2f8580
+ref: release/play-1.2.0
+run: https://github.com/moralesdaren5241-hue/nursecalc-pro/actions/runs/40898907046
+smoke outcome: failure
