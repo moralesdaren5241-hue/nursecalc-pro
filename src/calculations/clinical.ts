@@ -311,7 +311,7 @@ export function naegele(i: { lmp: string; today: string; cycleDays?: number }): 
     const edd = new Date((lmp as Date).getTime() + (280 + adj) * DAY);
     const gaDays = Math.round(((today as Date).getTime() - (lmp as Date).getTime()) / DAY) - adj;
     return ok({
-      value: gaDays, unit: 'days', display: iso(edd),
+      value: gaDays, unit: 'days', display: iso(edd), displayUnit: 'EDD',
       formula: 'EDD = LMP + 280 days (Naegele: LMP + 1 year − 3 months + 7 days), adjusted for cycle length',
       substitution: `${i.lmp} + ${280 + adj} days`,
       steps: [`EDD = ${iso(edd)}`, `Gestational age on ${i.today} = ${Math.floor(gaDays / 7)} weeks ${gaDays % 7} days`],

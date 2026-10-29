@@ -11,7 +11,7 @@ REPORT="$OUT/android-verify.txt"
 FAILS=0
 log()  { echo "$*" | tee -a "$REPORT"; }
 pass() { log "PASS  $*"; }
-fail() { log "FAIL  $*"; FAILS=$((FAILS + 1)); }
+fail() { log "FAIL  $*"; echo "::error title=verify-android::$*"; FAILS=$((FAILS + 1)); }
 expect() { local name="$1" cond="$2"; if [ "$cond" = "1" ]; then pass "$name"; else fail "$name"; fi; }
 has() { grep -qE "$2" <<<"$1" && echo 1 || echo 0; }
 hasnt() { grep -qE "$2" <<<"$1" && echo 0 || echo 1; }

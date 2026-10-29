@@ -196,6 +196,26 @@ describe('input sweep: every number field of every form calculator', () => {
   }
 });
 
+describe('result labelling', () => {
+  it('a date or clock-time result is never labelled with a numeric unit', () => {
+    for (const def of CALCULATORS.filter((c) => c.run && c.example)) {
+      const r = runUi(def.id, { ...(def.defaults ?? {}), ...(def.example ?? {}) });
+      if (!r.ok) continue;
+      const shownUnit = r.displayUnit ?? r.unit;
+      if (/^\d{4}-\d{2}-\d{2}$|^\d{2}:\d{2}$/.test(r.display)) {
+        expect(shownUnit, `${def.id} shows "${r.display} ${shownUnit}"`).not.toMatch(/days|minutes|hours|mL|mg/);
+      }
+    }
+  });
+
+  it('due date shows "EDD"; completion time shows the day it finishes', () => {
+    const edd = cl.naegele({ lmp: '2026-01-01', today: '2026-03-01' });
+    expect(edd.ok && `${edd.display} ${edd.displayUnit}`).toBe('2026-10-08 EDD');
+    const end = iv.completionTime({ start: '22:30', volumeMl: 1000, rateMlHr: 125 });
+    expect(end.ok && `${end.display} ${end.displayUnit}`).toBe('06:30 next day');
+  });
+});
+
 describe('reference integrity', () => {
   it('every calculator reference id exists in the reference manifest', () => {
     const ids = new Set(REFERENCES.map((r) => r.id));

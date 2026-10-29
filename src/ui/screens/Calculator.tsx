@@ -297,7 +297,7 @@ function ResultView({ def, r, raw, onEdit, onPractice }: { def: CalcDef; r: Calc
     <section className="result" aria-label={`${def.name} result`}>
       <div className="result-hero">
         <p className="eyebrow">{def.name}</p>
-        <p className="result-value"><span className="num">{r.display}</span> <span className="result-unit">{r.unit}</span></p>
+        <p className="result-value"><span className="num">{r.display}</span> <span className="result-unit">{r.displayUnit ?? r.unit}</span></p>
         {r.interpretation && <p className="result-interp">{r.interpretation}</p>}
       </div>
       {r.extras.length > 0 && (

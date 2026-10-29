@@ -90,7 +90,7 @@ export function completionTime(i: { start: string; volumeMl: number; rateMlHr: n
     const end = clockText((startMin as number) + durMin);
     const dayTxt = end.dayOffset === 0 ? 'same day' : end.dayOffset === 1 ? 'next day' : `+${end.dayOffset} days`;
     return ok({
-      value: durMin, unit: 'minutes', display: `${end.clock}`,
+      value: durMin, unit: 'minutes', display: `${end.clock}`, displayUnit: dayTxt,
       formula: 'End = Start + (Volume ÷ Rate)',
       substitution: `${i.start} + (${fmt(i.volumeMl, 2)} ÷ ${fmt(i.rateMlHr, 2)} hr)`,
       steps: [`Duration = ${fmt(i.volumeMl / i.rateMlHr, 4)} hr = ${fmt(durMin, 1)} min`, `${i.start} + ${fmt(durMin, 0)} min = ${end.clock} (${dayTxt})`],

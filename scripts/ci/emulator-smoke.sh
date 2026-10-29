@@ -17,7 +17,7 @@ FAILS=0
 
 log()  { echo "$*" | tee -a "$REPORT"; }
 pass() { log "PASS  $*"; }
-fail() { log "FAIL  $*"; FAILS=$((FAILS + 1)); }
+fail() { log "FAIL  $*"; echo "::error title=emulator-smoke::$*"; FAILS=$((FAILS + 1)); }
 check() { local name="$1"; shift; if "$@" >/dev/null 2>&1; then pass "$name"; else fail "$name"; fi; }
 shot() { adb exec-out screencap -p > "$OUT/screenshots/$1.png" && log "      screenshot $1.png"; }
 wait_for() { # wait_for TEXT [seconds]
