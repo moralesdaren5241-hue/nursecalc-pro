@@ -109,7 +109,7 @@ export const CALCULATORS: CalcDef[] = [
     run: (v) => med.insulinVolume({ orderedUnits: v.num('units'), concUnitsPerMl: Number(v.str('conc')) }),
   },
   {
-    id: 'heparin', name: 'Heparin / units-based infusion', category: 'med', topic: 'iv', refs: ['iv-pump'],
+    id: 'heparin', name: 'Heparin / units-based infusion', category: 'med', topic: 'iv', refs: [],
     description: 'High-alert: units/hr ↔ mL/hr, including units/kg/hr.', tags: ['heparin', 'units/hr', 'units per hour', 'anticoagulant', 'high alert', 'units/kg/hr'],
     highAlert: 'I have confirmed the drug, bag concentration (units/mL), ordered dose and weight, and will have the pump programming independently double-checked.',
     fields: [sel('mode', 'Calculate', [['rateFromDose', 'mL/hr from ordered units/hr'], ['weightBased', 'mL/hr from units/kg/hr'], ['doseFromRate', 'units/hr from current mL/hr']]), num('conc', 'Concentration', { unitText: 'units/mL' }), { ...num('uh', 'Ordered dose', { unitText: 'units/hr' }), showIf: (r) => r.mode === 'rateFromDose' }, { ...num('ukh', 'Ordered dose', { unitText: 'units/kg/hr' }), showIf: (r) => r.mode === 'weightBased' }, { ...weight('weight', 'Weight', true), showIf: (r) => r.mode === 'weightBased' }, { ...num('mlh', 'Current pump rate', { unitText: 'mL/hr' }), showIf: (r) => r.mode === 'doseFromRate' }],
@@ -117,14 +117,14 @@ export const CALCULATORS: CalcDef[] = [
     run: (v, s) => med.heparinInfusion({ mode: v.str('mode') as med.HeparinMode, concUnitsPerMl: v.num('conc'), unitsPerHr: v.opt('uh'), unitsPerKgHr: v.opt('ukh'), weightKg: v.opt('weight', 'kg'), mlPerHr: v.opt('mlh'), pumpDp: s.pumpDp }),
   },
   {
-    id: 'supply', name: 'Medication supply quantity', category: 'med', topic: 'dosage', refs: ['dose-basic'],
+    id: 'supply', name: 'Medication supply quantity', category: 'med', topic: 'dosage', refs: [],
     description: 'Total tablets or mL needed for a course.', tags: ['supply', 'dispense', 'how many tablets for', 'course', 'days supply'],
     fields: [num('perDose', 'Amount per dose'), sel('unitLabel', 'Unit', [['tablets', 'tablets'], ['capsules', 'capsules'], ['mL', 'mL']]), num('perDay', 'Doses per day'), num('days', 'Days')],
     defaults: { unitLabel: 'tablets' }, example: { perDose: '2', unitLabel: 'tablets', perDay: '3', days: '7' },
     run: (v) => med.supplyQuantity({ perDose: v.num('perDose'), dosesPerDay: v.num('perDay'), days: v.num('days'), unitLabel: v.str('unitLabel') }),
   },
   {
-    id: 'strength', name: 'Percent & ratio strength', category: 'med', topic: 'conversions', refs: ['c1v1'],
+    id: 'strength', name: 'Percent & ratio strength', category: 'med', topic: 'conversions', refs: [],
     description: '% w/v or 1:X ratio → mg/mL.', tags: ['percent', 'percentage', '% w/v', 'ratio', '1:1000', '1:10000', 'concentration conversion'],
     fields: [sel('type', 'Strength expressed as', [['pct', 'Percentage (% w/v)'], ['ratio', 'Ratio 1:X (g:mL)']]), num('val', 'Value (the % or the X in 1:X)')],
     defaults: { type: 'pct' }, example: { type: 'ratio', val: '1000' },
@@ -172,7 +172,7 @@ export const CALCULATORS: CalcDef[] = [
     description: 'Several bags back-to-back: total volume, total time, each bag’s finish time.', tags: ['sequential', 'consecutive bags', 'running total', 'next bag', 'infusion schedule', 'IV plan'],
   },
   {
-    id: 'rate-from-dose', name: 'Dose → pump rate (titration)', category: 'iv', topic: 'iv', refs: ['iv-pump'],
+    id: 'rate-from-dose', name: 'Dose → pump rate (titration)', category: 'iv', topic: 'iv', refs: [],
     description: 'mcg/kg/min, mcg/min, mg/hr, mg/kg/hr → mL/hr.', tags: ['mcg/kg/min', 'mcg/min', 'mg/kg/hr', 'vasopressor', 'vasoactive', 'titration', 'drip calculation', 'critical care infusion'],
     highAlert: 'I have confirmed the drug, the concentration on the actual bag/syringe, the dose units (mcg vs mg, per min vs per hr) and the weight, and will have an independent double-check.',
     fields: [num('dose', 'Ordered dose rate'), sel('doseUnit', 'Dose unit', DOSE_RATE_OPTS), num('drug', 'Drug in bag/syringe', { units: MASS }), num('bagVol', 'Total volume', { units: ['mL', 'L'] }), { ...weight('weight', 'Weight', true), showIf: (r) => (r.doseUnit ?? '').includes('/kg/') }],
@@ -181,7 +181,7 @@ export const CALCULATORS: CalcDef[] = [
     run: (v, s) => iv.rateFromDose({ dose: v.num('dose'), doseUnit: v.str('doseUnit') as iv.DoseRateUnit, concMgPerMl: v.n('drug', 'mg') / v.n('bagVol', 'mL'), weightKg: v.opt('weight', 'kg'), pumpDp: s.pumpDp, highAlert: true }),
   },
   {
-    id: 'dose-from-rate', name: 'Pump rate → dose delivered', category: 'iv', topic: 'iv', refs: ['iv-pump'],
+    id: 'dose-from-rate', name: 'Pump rate → dose delivered', category: 'iv', topic: 'iv', refs: [],
     description: 'What dose a running infusion is delivering.', tags: ['dose per hour', 'mg/hr', 'mcg/min delivered', 'check infusion'],
     fields: [num('rate', 'Current rate', { unitText: 'mL/hr' }), num('drug', 'Drug in bag/syringe', { units: MASS }), num('bagVol', 'Total volume', { units: ['mL', 'L'] }), num('weight', 'Weight (optional)', { optional: true, units: ['kg'] })],
     defaults: { 'drug@': 'mg', 'bagVol@': 'mL', 'weight@': 'kg' }, example: { rate: '13.1', drug: '400', 'drug@': 'mg', bagVol: '250', 'bagVol@': 'mL', weight: '70', 'weight@': 'kg' },
@@ -211,14 +211,14 @@ export const CALCULATORS: CalcDef[] = [
     run: (v) => body.idealBodyWeight({ heightCm: v.n('height', 'cm'), sex: v.str('sex') as 'male' | 'female', actualKg: v.opt('actual', 'kg') }),
   },
   {
-    id: 'weight-change', name: 'Weight change %', category: 'body', topic: 'bmi', refs: ['bmi'],
+    id: 'weight-change', name: 'Weight change %', category: 'body', topic: 'bmi', refs: [],
     description: 'Percentage weight loss or gain.', tags: ['weight loss', 'weight gain', 'percent change', 'malnutrition'],
     fields: [num('prev', 'Previous / usual weight', { units: ['kg', 'lb', 'g'] }), num('curr', 'Current weight', { units: ['kg', 'lb', 'g'] })],
     defaults: { 'prev@': 'kg', 'curr@': 'kg' }, example: { prev: '80', 'prev@': 'kg', curr: '72', 'curr@': 'kg' },
     run: (v) => body.weightChange({ previousKg: v.n('prev', 'kg'), currentKg: v.n('curr', 'kg') }),
   },
   {
-    id: 'whtr', name: 'Waist-to-height ratio', category: 'body', topic: 'bmi', refs: ['bmi'],
+    id: 'whtr', name: 'Waist-to-height ratio', category: 'body', topic: 'bmi', refs: [],
     description: 'Central adiposity screening.', tags: ['waist', 'WHtR', 'abdominal'],
     fields: [num('waist', 'Waist circumference', { units: ['cm', 'in'] }), num('height', 'Height', { units: ['cm', 'in', 'm'] })],
     defaults: { 'waist@': 'cm', 'height@': 'cm' }, example: { waist: '85', 'waist@': 'cm', height: '170', 'height@': 'cm' },
@@ -272,7 +272,7 @@ export const CALCULATORS: CalcDef[] = [
     run: (v) => cl.meanArterialPressure({ sbp: v.n('sbp', 'mmHg'), dbp: v.n('dbp', 'mmHg') }),
   },
   {
-    id: 'pulse-pressure', name: 'Pulse pressure', category: 'vitals', topic: 'vitals', refs: ['map'], description: 'SBP − DBP.', tags: ['PP', 'pulse pressure', 'widened', 'narrowed'],
+    id: 'pulse-pressure', name: 'Pulse pressure', category: 'vitals', topic: 'vitals', refs: [], description: 'SBP − DBP.', tags: ['PP', 'pulse pressure', 'widened', 'narrowed'],
     fields: [num('sbp', 'Systolic BP', { unitText: 'mmHg' }), num('dbp', 'Diastolic BP', { unitText: 'mmHg' })], example: { sbp: '120', dbp: '80' },
     run: (v) => cl.pulsePressure({ sbp: v.num('sbp'), dbp: v.num('dbp') }),
   },
@@ -282,17 +282,17 @@ export const CALCULATORS: CalcDef[] = [
     run: (v) => cl.shockIndex({ hr: v.num('hr'), sbp: v.num('sbp') }),
   },
   {
-    id: 'pulse-deficit', name: 'Pulse deficit', category: 'vitals', topic: 'vitals', refs: ['map'], description: 'Apical − radial rate.', tags: ['apical radial', 'atrial fibrillation', 'pulse deficit'],
+    id: 'pulse-deficit', name: 'Pulse deficit', category: 'vitals', topic: 'vitals', refs: [], description: 'Apical − radial rate.', tags: ['apical radial', 'atrial fibrillation', 'pulse deficit'],
     fields: [num('apical', 'Apical rate', { unitText: '/min' }), num('radial', 'Radial rate', { unitText: '/min' })], example: { apical: '96', radial: '80' },
     run: (v) => cl.pulseDeficit({ apical: v.num('apical'), radial: v.num('radial') }),
   },
   {
-    id: 'rate-count', name: 'Rate from partial count', category: 'vitals', topic: 'vitals', refs: ['map'], description: 'Beats or breaths counted over seconds → per minute.', tags: ['heart rate', 'respiratory rate', 'count 15 seconds', 'pulse'],
+    id: 'rate-count', name: 'Rate from partial count', category: 'vitals', topic: 'vitals', refs: [], description: 'Beats or breaths counted over seconds → per minute.', tags: ['heart rate', 'respiratory rate', 'count 15 seconds', 'pulse'],
     fields: [num('count', 'Beats or breaths counted'), sel('seconds', 'Counted over', [['15', '15 s'], ['30', '30 s'], ['60', '60 s']])], defaults: { seconds: '30' }, example: { count: '18', seconds: '15' },
     run: (v) => cl.rateFromCount({ count: v.num('count'), seconds: Number(v.str('seconds')) }),
   },
   {
-    id: 'temperature', name: 'Temperature °C ↔ °F', category: 'vitals', topic: 'conversions', refs: ['map'], description: 'Convert body temperature.', tags: ['fever', 'celsius', 'fahrenheit', 'temp'],
+    id: 'temperature', name: 'Temperature °C ↔ °F', category: 'vitals', topic: 'conversions', refs: [], description: 'Convert body temperature.', tags: ['fever', 'celsius', 'fahrenheit', 'temp'],
     fields: [num('t', 'Temperature'), sel('from', 'Entered in', [['C', '°C'], ['F', '°F']])], defaults: { from: 'C' }, example: { t: '38.5', from: 'C' },
     run: (v) => cl.temperature({ value: v.num('t'), from: v.str('from') as 'C' | 'F' }),
   },
@@ -329,7 +329,7 @@ export const CALCULATORS: CalcDef[] = [
     run: (v) => cl.cylinderDuration({ cylinder: v.str('cyl'), customFactor: v.opt('factor'), pressurePsi: v.num('psi'), reservePsi: v.num('reserve'), flowLMin: v.num('flow') }),
   },
   {
-    id: 'o2-cylinder-bar', name: 'Oxygen cylinder duration (bar/litres)', category: 'o2', topic: 'oxygen', refs: ['o2-cylinder'],
+    id: 'o2-cylinder-bar', name: 'Oxygen cylinder duration (bar/litres)', category: 'o2', topic: 'oxygen', refs: [],
     description: 'For cylinders labelled with water capacity and bar.', tags: ['bar', 'kPa', 'litres', 'oxygen cylinder', 'water capacity'],
     fields: [num('cap', 'Water capacity', { unitText: 'L' }), num('bar', 'Gauge pressure', { unitText: 'bar' }), num('reserve', 'Reserve', { unitText: 'bar' }), num('flow', 'Flow rate', { unitText: 'L/min' })],
     defaults: { reserve: '7' }, example: { cap: '2', bar: '137', reserve: '7', flow: '2' },
@@ -337,7 +337,7 @@ export const CALCULATORS: CalcDef[] = [
   },
 
   {
-    id: 'o2-consumption', name: 'Oxygen needed for a transfer', category: 'o2', topic: 'oxygen', refs: ['o2-cylinder'],
+    id: 'o2-consumption', name: 'Oxygen needed for a transfer', category: 'o2', topic: 'oxygen', refs: [],
     description: 'Litres used at a flow rate over a time.', tags: ['oxygen consumption', 'litres', 'transfer', 'transport oxygen', 'flow time'],
     fields: [num('flow', 'Flow rate', { unitText: 'L/min' }), num('time', 'Duration', { units: ['min', 'hr'] })], defaults: { 'time@': 'min' }, example: { flow: '4', time: '90', 'time@': 'min' },
     run: (v) => cl.oxygenConsumption({ flowLMin: v.num('flow'), minutes: v.n('time', 'min') }),
@@ -351,19 +351,19 @@ export const CALCULATORS: CalcDef[] = [
     run: (v) => cl.macroCalories({ carbG: v.num('carb'), proteinG: v.num('protein'), fatG: v.num('fat') }),
   },
   {
-    id: 'enteral-rate', name: 'Enteral feeding rate', category: 'nutrition', topic: 'nutrition', refs: ['macros'],
+    id: 'enteral-rate', name: 'Enteral feeding rate', category: 'nutrition', topic: 'nutrition', refs: [],
     description: 'Pump rate from prescribed volume and hours.', tags: ['tube feeding', 'NG feed', 'PEG', 'enteral', 'feed rate'],
     fields: [num('volume', 'Prescribed volume', { units: ['mL', 'L'] }), num('hours', 'Feeding period', { unitText: 'hours' })], defaults: { 'volume@': 'mL' }, example: { volume: '1200', 'volume@': 'mL', hours: '20' },
     run: (v) => cl.enteralRate({ volumeMl: v.n('volume', 'mL'), hours: v.num('hours') }),
   },
   {
-    id: 'nutrition-target', name: '% of nutrition target achieved', category: 'nutrition', topic: 'nutrition', refs: ['macros'],
+    id: 'nutrition-target', name: '% of nutrition target achieved', category: 'nutrition', topic: 'nutrition', refs: [],
     description: 'Actual vs prescribed target.', tags: ['target', 'goal', 'percent achieved', 'intake'],
     fields: [num('actual', 'Actual intake'), num('target', 'Prescribed target'), sel('unit', 'Unit', [['kcal', 'kcal'], ['g protein', 'g protein'], ['mL', 'mL']])], defaults: { unit: 'kcal' }, example: { actual: '1500', target: '2000', unit: 'kcal' },
     run: (v) => cl.percentOfTarget({ actual: v.num('actual'), target: v.num('target'), unitLabel: v.str('unit') }),
   },
   {
-    id: 'protein-kg', name: 'Protein intake per kg', category: 'nutrition', topic: 'nutrition', refs: ['macros'],
+    id: 'protein-kg', name: 'Protein intake per kg', category: 'nutrition', topic: 'nutrition', refs: [],
     description: 'g/kg/day from daily protein.', tags: ['protein', 'g/kg'],
     fields: [num('protein', 'Protein per day', { unitText: 'g' }), weight()], defaults: { 'weight@': 'kg' }, example: { protein: '84', weight: '70', 'weight@': 'kg' },
     run: (v) => cl.proteinPerKg({ proteinG: v.num('protein'), weightKg: v.n('weight', 'kg') }),
@@ -377,7 +377,7 @@ export const CALCULATORS: CalcDef[] = [
     run: (v) => cl.glucoseConvert({ value: v.num('g'), from: v.str('from') as 'glu_mgdl' | 'glu_mmol' }),
   },
   {
-    id: 'creatinine-convert', name: 'Creatinine mg/dL ↔ µmol/L', category: 'lab', topic: 'renal', refs: ['cockcroft-gault'],
+    id: 'creatinine-convert', name: 'Creatinine mg/dL ↔ µmol/L', category: 'lab', topic: 'renal', refs: [],
     description: 'Serum creatinine units.', tags: ['creatinine', 'umol', 'SCr'],
     fields: [num('c', 'Creatinine'), sel('from', 'Entered in', [['cr_mgdl', 'mg/dL'], ['cr_umol', 'µmol/L']])], defaults: { from: 'cr_umol' }, example: { c: '1.2', from: 'cr_mgdl' },
     run: (v) => cl.creatinineConvert({ value: v.num('c'), from: v.str('from') as 'cr_mgdl' | 'cr_umol' }),
@@ -427,13 +427,13 @@ export const CALCULATORS: CalcDef[] = [
     run: (v) => sc.apgar(choiceMap(v, sc.APGAR_ITEMS), Number(v.str('minute'))),
   },
   {
-    id: 'newborn-loss', name: 'Newborn weight loss %', category: 'ob', topic: 'obstetric', refs: ['naegele'],
+    id: 'newborn-loss', name: 'Newborn weight loss %', category: 'ob', topic: 'obstetric', refs: [],
     description: 'Percent change from birth weight.', tags: ['newborn weight', 'neonatal weight loss', 'breastfeeding'],
     fields: [num('birth', 'Birth weight', { units: ['g', 'kg'] }), num('curr', 'Current weight', { units: ['g', 'kg'] })], defaults: { 'birth@': 'g', 'curr@': 'g' }, example: { birth: '3500', 'birth@': 'g', curr: '3290', 'curr@': 'g' },
     run: (v) => cl.newbornWeightLoss({ birthG: v.n('birth', 'g'), currentG: v.n('curr', 'g') }),
   },
   {
-    id: 'contractions', name: 'Contraction frequency & duration', category: 'ob', topic: 'obstetric', refs: ['naegele'],
+    id: 'contractions', name: 'Contraction frequency & duration', category: 'ob', topic: 'obstetric', refs: [],
     description: 'From start times (handles midnight).', tags: ['contractions', 'labor', 'labour', 'frequency', 'duration', 'uterine'],
     fields: [{ kind: 'text', key: 'starts', label: 'Start times (HH:MM or HH:MM:SS, comma-separated)', placeholder: '14:02, 14:06, 14:09:30' }, { kind: 'text', key: 'durs', label: 'Durations in seconds (optional, comma-separated)', placeholder: '50, 60, 55' }],
     example: { starts: '14:02, 14:06, 14:09:30, 14:13', durs: '50, 60, 55, 60' },

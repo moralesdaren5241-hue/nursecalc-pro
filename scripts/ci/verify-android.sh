@@ -41,7 +41,8 @@ log "$(grep -E "^package:|sdkVersion|targetSdkVersion|uses-permission|applicatio
 expect "applicationId com.nursecalcpro.app"   "$(has "$BADGING" "^package: name='com.nursecalcpro.app'")"
 expect "versionName matches package.json ($VERSION)" "$(has "$BADGING" "versionName='$VERSION'")"
 expect "targetSdkVersion 36"                  "$(has "$BADGING" "^targetSdkVersion:'36'")"
-expect "minSdkVersion 24"                     "$(has "$BADGING" "^sdkVersion:'24'")"
+# aapt2 prints "minSdkVersion:'24'" (older aapt printed "sdkVersion:'24'")
+expect "minSdkVersion 24"                     "$(has "$BADGING" "^(min)?[sS]dkVersion:'24'")"
 expect "app label NurseCalc Pro"              "$(has "$BADGING" "^application-label:'NurseCalc Pro'")"
 expect "not debuggable"                       "$(hasnt "$BADGING" "application-debuggable")"
 expect "no INTERNET permission"               "$(hasnt "$BADGING" "uses-permission: name='android.permission.INTERNET'")"
@@ -67,15 +68,16 @@ expect "no remote script or font loads in the web bundle" "$(hasnt "$INDEX" '<(s
 log ""
 
 # ---- AAB manifest via bundletool ----
-BT_URL="$(curl -fsSL https://api.github.com/repos/google/bundletool/releases/latest | grep -oE 'https://[^"]+bundletool-all-[0-9.]+\.jar' | head -1)"
-if [ -n "$BT_URL" ] && curl -fsSL -o "$RUNNER_TEMP/bundletool.jar" "$BT_URL"; then
+BUNDLETOOL_VERSION=1.18.3
+BT_URL="https://github.com/google/bundletool/releases/download/$BUNDLETOOL_VERSION/bundletool-all-$BUNDLETOOL_VERSION.jar"
+if curl -fsSL --retry 3 -o "$RUNNER_TEMP/bundletool.jar" "$BT_URL"; then
   AABMAN="$(java -jar "$RUNNER_TEMP/bundletool.jar" dump manifest --bundle "$AAB" 2>&1)"
   echo "$AABMAN" > "$OUT/aab-manifest.xml"
   expect "AAB targetSdkVersion 36" "$(has "$AABMAN" 'targetSdkVersion="36"')"
   expect "AAB versionName $VERSION" "$(has "$AABMAN" "versionName=\"$VERSION\"")"
   log "AAB versionCode: $(grep -oE 'versionCode="[0-9]+"' <<<"$AABMAN")"
 else
-  fail "download bundletool to inspect the AAB manifest"
+  fail "download bundletool $BUNDLETOOL_VERSION to inspect the AAB manifest"
 fi
 log ""
 
@@ -84,6 +86,7 @@ TEST_SHA="$(keytool -list -v -keystore android/app/nursecalc-test.keystore -stor
 SIDE_CERT="$("$APKSIGNER" verify --print-certs "$SIDELOAD" 2>&1)"
 expect "sideload APK signature verifies" "$(has "$SIDE_CERT" 'certificate SHA-256 digest')"
 if [ "${NURSECALC_HAS_UPLOAD_KEY:-false}" = "true" ]; then
+  [ -n "$TEST_SHA" ] || fail "read the public test key fingerprint for comparison"
   REL_CERT="$("$APKSIGNER" verify --print-certs "$RELEASE_APK" 2>&1)"
   expect "release APK signed with upload key" "$(has "$REL_CERT" 'certificate SHA-256 digest')"
   expect "release APK NOT signed with the public test key" "$(hasnt "$REL_CERT" "$TEST_SHA")"

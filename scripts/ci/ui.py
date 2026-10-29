@@ -7,7 +7,8 @@ its content there) and finds elements by visible text or content description.
   ui.py has  TEXT            exit 0 if an element whose text/desc contains TEXT is visible
   ui.py tap  TEXT [--last]   tap the centre of the first (or last) matching element
   ui.py dump FILE            save the raw hierarchy XML
-  ui.py focus PACKAGE        exit 0 if PACKAGE owns the focused window
+  ui.py focus PACKAGE        exit 0 if PACKAGE is the resumed/focused app (1 = not, 3 = unknown)
+  ui.py unfocused PACKAGE    exit 0 only if PACKAGE is definitely NOT in the foreground
 """
 import re
 import subprocess
@@ -74,11 +75,26 @@ def main() -> int:
         with open(sys.argv[2], "w", encoding="utf-8") as fh:
             fh.write(ET.tostring(root, encoding="unicode"))
         return 0
-    if cmd == "focus":
-        out = adb("shell", "dumpsys", "window", "windows")
-        focus = [l for l in out.splitlines() if "mCurrentFocus" in l or "mFocusedApp" in l]
+    if cmd in ("focus", "unfocused"):
+        # Android 14+ no longer prints mCurrentFocus under `dumpsys window windows`,
+        # which made every "in foreground" check fail and every negated check pass
+        # vacuously. Read the resumed activity and the focused window from both
+        # services, and report "unknown" (exit 3) instead of guessing when neither
+        # is printed, so a negated check can't pass by accident.
+        lines = adb("shell", "dumpsys", "activity", "activities").splitlines()
+        lines += adb("shell", "dumpsys", "window").splitlines()
+        keys = ("topResumedActivity", "mResumedActivity", "ResumedActivity:", "mCurrentFocus", "mFocusedApp")
+        focus = [l.strip() for l in lines if any(k in l for k in keys)]
         print("\n".join(focus))
-        return 0 if any(sys.argv[2] in l for l in focus) else 1
+        if not focus:
+            print("could not determine the foreground app", file=sys.stderr)
+            return 3
+        resumed = [l for l in focus if "Resumed" in l]
+        decisive = resumed or focus
+        mine = any(sys.argv[2] in l for l in decisive)
+        if cmd == "focus":
+            return 0 if mine else 1
+        return 1 if mine else 0
     print(__doc__, file=sys.stderr)
     return 2
 

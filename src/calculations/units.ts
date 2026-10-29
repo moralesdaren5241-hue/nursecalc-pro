@@ -66,7 +66,7 @@ export const UNITS: UnitDef[] = [
   U('glu_mgdl', 'mg/dL', 'glucose', 1),
   U('glu_mmol', 'mmol/L', 'glucose', 18.016), // glucose molar mass 180.16 g/mol
   U('cr_mgdl', 'mg/dL', 'creatinine', 1),
-  U('cr_umol', 'µmol/L', 'creatinine', 1 / 88.42), // creatinine molar mass 113.12 g/mol
+  U('cr_umol', 'µmol/L', 'creatinine', 1 / 88.4), // 88.4 µmol/L per mg/dL (standard SI factor; creatinine 113.12 g/mol → 88.40)
   U('C', '°C', 'temperature', 1, ['celsius']),
   U('F', '°F', 'temperature', 5 / 9, ['fahrenheit'], -32 * (5 / 9)),
   U('mL/hr', 'mL/hr', 'volumeRate', 1),

@@ -68,13 +68,13 @@ adb shell input keyevent KEYCODE_BACK; sleep 2
 if wait_for "Quick access" 10; then pass "back from Settings tab root returns to Home (does not exit)"; else fail "back from Settings tab root returns to Home (does not exit)"; fi
 check "app still in foreground after back to Home" $UI focus "$PKG"
 adb shell input keyevent KEYCODE_BACK; sleep 3
-if $UI focus "$PKG" >/dev/null 2>&1; then fail "back at Home root exits the app"; else pass "back at Home root exits the app"; fi
+check "back at Home root exits the app" $UI unfocused "$PKG"
 
 log ""; log "-- Background and resume"
 check "relaunch" launch
 wait_for "Quick access" 20 >/dev/null
 adb shell input keyevent KEYCODE_HOME; sleep 3
-check "app left foreground on HOME" bash -c "! $UI focus $PKG"
+check "app left foreground on HOME" $UI unfocused "$PKG"
 check "resume from background" launch
 if wait_for "Quick access" 15; then pass "content intact after resume"; else fail "content intact after resume"; fi
 

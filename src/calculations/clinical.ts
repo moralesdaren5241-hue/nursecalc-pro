@@ -240,7 +240,7 @@ export function creatinineConvert(i: { value: number; from: 'cr_mgdl' | 'cr_umol
     const to = i.from === 'cr_mgdl' ? 'cr_umol' : 'cr_mgdl';
     const v = convert(i.value, i.from, to);
     const lbl = to === 'cr_umol' ? 'µmol/L' : 'mg/dL';
-    return ok({ value: v, unit: lbl, display: fmt(v, to === 'cr_umol' ? 0 : 2), formula: '1 mg/dL creatinine = 88.42 µmol/L', substitution: i.from === 'cr_mgdl' ? `${fmt(i.value, 3)} × 88.42` : `${fmt(i.value, 1)} ÷ 88.42`, steps: [`= ${fmt(v, 4)} ${lbl}`], rounding: to === 'cr_umol' ? 'Whole µmol/L.' : '2 dp.', notes: [] });
+    return ok({ value: v, unit: lbl, display: fmt(v, to === 'cr_umol' ? 0 : 2), formula: '1 mg/dL creatinine = 88.4 µmol/L', substitution: i.from === 'cr_mgdl' ? `${fmt(i.value, 3)} × 88.4` : `${fmt(i.value, 1)} ÷ 88.4`, steps: [`= ${fmt(v, 4)} ${lbl}`], rounding: to === 'cr_umol' ? 'Whole µmol/L.' : '2 dp.', notes: [] });
   });
 }
 

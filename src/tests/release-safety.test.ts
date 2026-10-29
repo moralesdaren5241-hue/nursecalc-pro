@@ -93,9 +93,9 @@ describe('worked examples from primary sources and standard texts (hand-computed
     ['Heparin 18 U/kg/hr × 80 kg @ 100 U/mL', () => med.heparinInfusion({ mode: 'weightBased', concUnitsPerMl: 100, unitsPerKgHr: 18, weightKg: 80 }), 14.4, 9],
     // Insulin U-100: 12 units → 0.12 mL
     ['Insulin 12 units U-100', () => med.insulinVolume({ orderedUnits: 12, concUnitsPerMl: 100 }), 0.12, 12],
-    // Glucose 180 mg/dL ÷ 18.016 = 9.991 mmol/L; creatinine 1 mg/dL = 88.42 µmol/L
+    // Glucose 180 mg/dL ÷ 18.016 = 9.991 mmol/L; creatinine 1 mg/dL = 88.4 µmol/L
     ['Glucose 180 mg/dL', () => cl.glucoseConvert({ value: 180, from: 'glu_mgdl' }), 180 / 18.016, 9],
-    ['Creatinine 1 mg/dL', () => cl.creatinineConvert({ value: 1, from: 'cr_mgdl' }), 88.42, 9],
+    ['Creatinine 1 mg/dL', () => cl.creatinineConvert({ value: 1, from: 'cr_mgdl' }), 88.4, 9],
   ])('%s', (_n, f, expected, digits) => {
     expect(val(f())).toBeCloseTo(expected, digits);
   });
