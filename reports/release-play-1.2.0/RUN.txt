@@ -1,4 +1,4 @@
-commit: 571c269d5817c8cc0a7202e8fb0e18095350dec3
+commit: 0e6a9130074e2156b4dc781934f6eb83e28ecbeb
 ref: release/play-1.2.0
-run: https://github.com/moralesdaren5241-hue/nursecalc-pro/actions/runs/40965059528
-smoke outcome: cancelled
+run: https://github.com/moralesdaren5241-hue/nursecalc-pro/actions/runs/40965813157
+smoke outcome: success

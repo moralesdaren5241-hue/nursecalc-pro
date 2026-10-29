@@ -1,4 +1,4 @@
-NurseCalc Pro emulator smoke test — 2026-10-29T22:25:15Z
+NurseCalc Pro emulator smoke test — 2026-10-29T22:30:01Z
 Device: sdk_gphone64_x86_64, Android 16 (API 36)
 WebView:   Current WebView package (name, version): (com.google.android.webview, 133.0.6943.137)
 APK: apk/app-sideload.apk (3497010 bytes)
@@ -16,8 +16,8 @@ Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
 Status: ok
 LaunchState: COLD
 Activity: com.nursecalcpro.app/.MainActivity
-TotalTime: 5348
-WaitTime: 5353
+TotalTime: 3279
+WaitTime: 3296
 Complete
 PASS  cold launch reports Status: ok
 PASS  home screen rendered (web content visible)
@@ -30,3 +30,67 @@ PASS  open Drug dose from Quick access
 PASS  drug dose calculator opened
       screenshot 02-drug-dose.png
 PASS  tap Try example
+PASS  example result 2.5 mL shown
+      screenshot 03-drug-dose-result.png
+
+-- Android back button
+PASS  back from calculator returns to Home
+PASS  tap Settings tab
+      screenshot 04-settings.png
+PASS  back from Settings tab root returns to Home (does not exit)
+PASS  app still in foreground after back to Home
+PASS  back at Home root exits the app
+
+-- Background and resume
+Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
+Status: ok
+LaunchState: WARM
+Activity: com.nursecalcpro.app/.MainActivity
+TotalTime: 889
+WaitTime: 898
+Complete
+PASS  relaunch
+PASS  app left foreground on HOME
+Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
+Warning: Activity not started, its current task has been brought to the front
+Status: ok
+LaunchState: HOT
+Activity: com.nursecalcpro.app/.MainActivity
+TotalTime: 264
+WaitTime: 273
+Complete
+PASS  resume from background
+PASS  content intact after resume
+
+-- Process restart
+Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: com.nursecalcpro.app/.MainActivity
+TotalTime: 765
+WaitTime: 771
+Complete
+PASS  launch after force-stop
+PASS  content after restart
+      screenshot 05-after-restart.png
+
+-- Rotation
+PASS  landscape renders
+      screenshot 06-landscape.png
+
+-- System dark mode
+Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: com.nursecalcpro.app/.MainActivity
+TotalTime: 1172
+WaitTime: 1173
+Complete
+PASS  dark mode renders
+      screenshot 07-dark.png
+
+-- Crash and log scan
+PASS  no crashes or ANRs in logcat
+PASS  web console not logged in release (loggingBehavior none)
+
+Result: 0 failed check(s)
