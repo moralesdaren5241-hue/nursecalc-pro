@@ -92,6 +92,13 @@ if [ "${NURSECALC_HAS_UPLOAD_KEY:-false}" = "true" ]; then
   expect "release APK NOT signed with the public test key" "$(hasnt "$REL_CERT" "$TEST_SHA")"
   JS="$(jarsigner -verify -verbose -certs "$AAB" 2>&1)"
   expect "AAB is signed (jar verified)" "$(has "$JS" 'jar verified')"
+  AAB_SHA="$(keytool -printcert -jarfile "$AAB" 2>/dev/null | grep -m1 'SHA256:' | awk '{print $2}' | tr -d ':' | tr 'A-F' 'a-f')"
+  log "AAB certificate SHA-256: ${AAB_SHA:-unreadable}"
+  expect "AAB NOT signed with the public test key" "$( [ -n "$AAB_SHA" ] && [ "$AAB_SHA" != "$TEST_SHA" ] && echo 1 || echo 0 )"
+  if [ -n "${NURSECALC_UPLOAD_CERT_SHA256:-}" ]; then
+    expect "AAB certificate matches the upload key" "$( [ "$AAB_SHA" = "$NURSECALC_UPLOAD_CERT_SHA256" ] && echo 1 || echo 0 )"
+    expect "release APK certificate matches the upload key" "$(has "$REL_CERT" "$NURSECALC_UPLOAD_CERT_SHA256")"
+  fi
   log "AAB signing: SIGNED with the private upload key"
 else
   JS="$(jarsigner -verify "$AAB" 2>&1)"

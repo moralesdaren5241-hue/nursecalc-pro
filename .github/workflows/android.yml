@@ -38,11 +38,10 @@ jobs:
     name: Build and verify AAB / APKs
     needs: web
     runs-on: ubuntu-latest
-    env:
-      UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
-      NURSECALC_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_STORE_PASSWORD }}
-      NURSECALC_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
-      NURSECALC_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+    # Signing secrets are NOT set for the whole job (that would expose them to npm
+    # install scripts). Only the key check and the Gradle step receive them.
+    outputs:
+      built: ${{ steps.gradle.outcome == 'success' }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -60,25 +59,43 @@ jobs:
           npm run build
           npx cap sync android
 
-      - name: Restore upload keystore from secrets (if configured)
-        run: |
-          if [ -n "$UPLOAD_KEYSTORE_BASE64" ]; then
-            echo "$UPLOAD_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
-            echo "NURSECALC_UPLOAD_STORE_FILE=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
-            echo "NURSECALC_HAS_UPLOAD_KEY=true" >> "$GITHUB_ENV"
-            echo "Upload keystore configured: the AAB will be signed for Play upload."
-          else
-            echo "NURSECALC_HAS_UPLOAD_KEY=false" >> "$GITHUB_ENV"
-            echo "::warning::No upload keystore secret — the AAB will be UNSIGNED. See docs/ANDROID_RELEASE.md."
-          fi
+      - name: Restore and check upload key (if configured)
+        env:
+          UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          NURSECALC_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_STORE_PASSWORD }}
+          NURSECALC_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          NURSECALC_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+        run: bash scripts/ci/check-upload-key.sh
 
       - name: Gradle build (AAB, release APK, sideload APK, lint)
+        id: gradle
         working-directory: android
+        env:
+          NURSECALC_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_STORE_PASSWORD }}
+          NURSECALC_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          NURSECALC_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon --stacktrace bundleRelease assembleRelease assembleSideload lintRelease
+          set +e
+          ./gradlew --no-daemon --stacktrace bundleRelease assembleRelease assembleSideload lintRelease 2>&1 | tee "$RUNNER_TEMP/gradle.log"
+          STATUS=${PIPESTATUS[0]}
+          set -e
+          if [ "$STATUS" -ne 0 ]; then
+            mkdir -p ../ci-report
+            # Surface the real cause (not just "BUILD FAILED") as annotations; GitHub masks any secret values.
+            grep -E "Execution failed for task|A problem occurred" "$RUNNER_TEMP/gradle.log" | sort -u | while read -r line; do echo "::error title=Gradle task failed::$line"; done
+            awk '/^\* What went wrong:/{p=1} /^\* Try:/{p=0} p' "$RUNNER_TEMP/gradle.log" > ../ci-report/gradle-failure.txt
+            MSG="$(head -c 3000 ../ci-report/gradle-failure.txt | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')"
+            echo "::error title=Gradle: what went wrong::${MSG:-see the Gradle step log}"
+            exit "$STATUS"
+          fi
+          for f in app/build/outputs/bundle/release/app-release.aab app/build/outputs/apk/sideload/app-sideload.apk; do
+            [ -s "$f" ] || { echo "::error title=Missing build output::$f was not produced"; exit 1; }
+          done
+          ls -l app/build/outputs/bundle/release/ app/build/outputs/apk/release/ app/build/outputs/apk/sideload/
 
       - name: Verify build outputs
+        id: verify
         run: bash scripts/ci/verify-android.sh ci-report
 
       - name: Collect lint report
@@ -92,19 +109,19 @@ jobs:
         run: rm -f "$RUNNER_TEMP/upload.jks"
 
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: ${{ !cancelled() && steps.gradle.outcome == 'success' }}
         with:
           name: NurseCalcPro-play-bundle
           path: android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: ${{ !cancelled() && steps.gradle.outcome == 'success' }}
         with:
           name: NurseCalcPro-release-apk
           path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: ${{ !cancelled() && steps.gradle.outcome == 'success' }}
         with:
           name: NurseCalcPro-sideload-apk
           path: android/app/build/outputs/apk/sideload/app-sideload.apk
@@ -118,9 +135,10 @@ jobs:
   emulator:
     name: Emulator smoke test (API 36)
     needs: android
-    # Runs even if verification failed, so its report is always published; the
-    # sideload release below still requires every job to succeed.
-    if: ${{ !cancelled() }}
+    # Runs whenever the APKs were built (even if a verification check failed), so its
+    # report is always published; skipped when Gradle failed and there is nothing to test.
+    # The sideload release below still requires every job to succeed.
+    if: ${{ !cancelled() && needs.android.outputs.built == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write   # to publish the report to the ci-reports branch
