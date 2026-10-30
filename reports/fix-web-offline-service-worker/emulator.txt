@@ -1,0 +1,129 @@
+NurseCalc Pro emulator smoke test — 2026-10-30T23:47:55Z
+Device: sdk_gphone64_x86_64, Android 16 (API 36)
+WebView:   Current WebView package (name, version): (com.google.android.webview, 133.0.6943.137)
+APK: apk/app-sideload.apk (3497006 bytes)
+
+PASS  install APK
+
+-- Permissions granted to the installed app
+    requested permissions:
+      com.nursecalcpro.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+    install permissions:
+PASS  no INTERNET permission
+
+-- First launch
+Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: com.nursecalcpro.app/.MainActivity
+TotalTime: 2518
+WaitTime: 2525
+Complete
+PASS  cold launch reports Status: ok
+PASS  home screen rendered (web content visible)
+      screenshot 01-home.png
+PASS  bottom tab bar visible (Calculators)
+PASS  disclaimer visible on home
+
+-- Calculation
+PASS  open Drug dose from Quick access
+PASS  drug dose calculator opened
+      screenshot 02-drug-dose.png
+PASS  tap Try example
+PASS  example result 2.5 mL shown
+      screenshot 03-drug-dose-result.png
+
+-- Android back button
+PASS  back from calculator returns to Home
+PASS  tap Settings tab
+      screenshot 04-settings.png
+PASS  back from Settings tab root returns to Home (does not exit)
+PASS  app still in foreground after back to Home
+PASS  back at Home root exits the app
+
+-- Background and resume
+Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
+Status: ok
+LaunchState: WARM
+Activity: com.nursecalcpro.app/.MainActivity
+TotalTime: 695
+WaitTime: 703
+Complete
+PASS  relaunch
+PASS  app left foreground on HOME
+Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
+Warning: Activity not started, its current task has been brought to the front
+Status: ok
+LaunchState: HOT
+Activity: com.nursecalcpro.app/.MainActivity
+TotalTime: 103
+WaitTime: 104
+Complete
+PASS  resume from background
+PASS  content intact after resume
+
+-- Process restart
+Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: com.nursecalcpro.app/.MainActivity
+TotalTime: 476
+WaitTime: 478
+Complete
+PASS  launch after force-stop
+PASS  content after restart
+      screenshot 05-after-restart.png
+
+-- Rotation
+PASS  landscape renders
+      screenshot 06-landscape.png
+
+-- System dark mode
+Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: com.nursecalcpro.app/.MainActivity
+TotalTime: 800
+WaitTime: 802
+Complete
+PASS  dark mode renders
+      screenshot 07-dark.png
+
+-- Crash and log scan
+FAIL  no crashes or ANRs in logcat
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: FATAL EXCEPTION: highpool[5]
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: Process: com.google.android.gms.persistent, PID: 1319
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: bevm: fqlt
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: 	at bewa.get(:com.google.android.gms@252635038@25.26.35 (260800-783060121):34)
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: 	at dagger.internal.DoubleCheck.c(:com.google.android.gms@252635038@25.26.35 (260800-783060121):10)
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: 	at dagger.internal.DoubleCheck.get(:com.google.android.gms@252635038@25.26.35 (260800-783060121):7)
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: 	at bevc.f(:com.google.android.gms@252635038@25.26.35 (260800-783060121):18)
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: 	at fsey.a(:com.google.android.gms@252635038@25.26.35 (260800-783060121):3)
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: 	at fsfi.i(:com.google.android.gms@252635038@25.26.35 (260800-783060121):20)
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: 	at fsfb.j(:com.google.android.gms@252635038@25.26.35 (260800-783060121):3)
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: 	at fsey.c(:com.google.android.gms@252635038@25.26.35 (260800-783060121):31)
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: 	at fsfi.c(:com.google.android.gms@252635038@25.26.35 (260800-783060121):8)
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: 	at fsfe.run(:com.google.android.gms@252635038@25.26.35 (260800-783060121):11)
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: 	at azpj.c(:com.google.android.gms@252635038@25.26.35 (260800-783060121):50)
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: 	at azpj.run(:com.google.android.gms@252635038@25.26.35 (260800-783060121):89)
+10-30 23:48:26.245  1319  2024 E AndroidRuntime: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1156)
+--
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: FATAL EXCEPTION: highpool[5]
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: Process: com.google.android.gms.persistent, PID: 1319
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: bevm: fqlt
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: 	at bewa.get(:com.google.android.gms@252635038@25.26.35 (260800-783060121):34)
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: 	at dagger.internal.DoubleCheck.c(:com.google.android.gms@252635038@25.26.35 (260800-783060121):10)
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: 	at dagger.internal.DoubleCheck.get(:com.google.android.gms@252635038@25.26.35 (260800-783060121):7)
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: 	at bevc.f(:com.google.android.gms@252635038@25.26.35 (260800-783060121):18)
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: 	at fsey.a(:com.google.android.gms@252635038@25.26.35 (260800-783060121):3)
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: 	at fsfi.i(:com.google.android.gms@252635038@25.26.35 (260800-783060121):20)
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: 	at fsfb.j(:com.google.android.gms@252635038@25.26.35 (260800-783060121):3)
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: 	at fsey.c(:com.google.android.gms@252635038@25.26.35 (260800-783060121):31)
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: 	at fsfi.c(:com.google.android.gms@252635038@25.26.35 (260800-783060121):8)
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: 	at fsfe.run(:com.google.android.gms@252635038@25.26.35 (260800-783060121):11)
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: 	at azpj.c(:com.google.android.gms@252635038@25.26.35 (260800-783060121):50)
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: 	at azpj.run(:com.google.android.gms@252635038@25.26.35 (260800-783060121):89)
+10-30 23:48:26.468  1319  2024 E DeviceDoctorHandler: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1156)
+PASS  web console not logged in release (loggingBehavior none)
+
+Result: 1 failed check(s)

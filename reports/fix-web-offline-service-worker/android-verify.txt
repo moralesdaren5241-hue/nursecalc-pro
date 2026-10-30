@@ -1,0 +1,43 @@
+NurseCalc Pro Android build verification — 2026-10-30T23:45:59Z
+build-tools: 37.0.0; expected versionName: 1.2.0
+
+PASS  exists: android/app/build/outputs/bundle/release/app-release.aab (3285285 bytes)
+PASS  exists: android/app/build/outputs/apk/sideload/app-sideload.apk (3497006 bytes)
+PASS  exists: android/app/build/outputs/apk/release/app-release.apk (3497006 bytes)
+
+package: name='com.nursecalcpro.app' versionCode='4' versionName='1.2.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+targetSdkVersion:'36'
+uses-permission: name='com.nursecalcpro.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
+application-label:'NurseCalc Pro'
+PASS  applicationId com.nursecalcpro.app
+PASS  versionName matches package.json (1.2.0)
+PASS  targetSdkVersion 36
+PASS  minSdkVersion 24
+PASS  app label NurseCalc Pro
+PASS  not debuggable
+PASS  no INTERNET permission
+PASS  no dangerous permissions (location, camera, storage, contacts, phone, mic)
+PASS  allowBackup=false
+
+PASS  AAB contains the web app (base/assets/public/index.html)
+PASS  AAB contains the WebView-update fallback page
+PASS  WebView debugging disabled in bundled config
+PASS  bridge logging disabled in bundled config
+PASS  no localhost/dev-server URLs in the web bundle
+PASS  no remote script or font loads in the web bundle
+
+PASS  AAB targetSdkVersion 36
+PASS  AAB versionName 1.2.0
+AAB versionCode: versionCode="4"
+
+PASS  sideload APK signature verifies
+PASS  release APK signed with upload key
+PASS  release APK NOT signed with the public test key
+PASS  AAB is signed (jar verified)
+AAB certificate SHA-256: a9adbde4b100274fcb73fb3e2df628193bddb46131373597084726fbc13f4073
+PASS  AAB NOT signed with the public test key
+PASS  AAB certificate matches the upload key
+PASS  release APK certificate matches the upload key
+AAB signing: SIGNED with the private upload key
+
+Result: 0 failed check(s)

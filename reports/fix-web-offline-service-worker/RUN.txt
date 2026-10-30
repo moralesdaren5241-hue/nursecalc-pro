@@ -1,0 +1,4 @@
+commit: 0a6b9cfae6a522cd2ac4e1357249837b3f77490c
+ref: fix/web-offline-service-worker
+run: https://github.com/moralesdaren5241-hue/nursecalc-pro/actions/runs/41146151665
+smoke outcome: failure
