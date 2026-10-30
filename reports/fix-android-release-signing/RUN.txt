@@ -1,0 +1,4 @@
+commit: 595da9811934c2d2d3b60ea28ce9cdda2958bfe4
+ref: fix/android-release-signing
+run: https://github.com/moralesdaren5241-hue/nursecalc-pro/actions/runs/41056819787
+smoke outcome: success
