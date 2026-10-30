@@ -1,4 +1,4 @@
-NurseCalc Pro Android build verification — 2026-10-30T11:17:37Z
+NurseCalc Pro Android build verification — 2026-10-30T11:17:39Z
 build-tools: 37.0.0; expected versionName: 1.2.0
 
 PASS  exists: android/app/build/outputs/bundle/release/app-release.aab (3255089 bytes)
