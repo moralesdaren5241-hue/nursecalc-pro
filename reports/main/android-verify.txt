@@ -1,9 +1,9 @@
-NurseCalc Pro Android build verification — 2026-10-30T11:27:40Z
+NurseCalc Pro Android build verification — 2026-10-30T13:42:25Z
 build-tools: 37.0.0; expected versionName: 1.2.0
 
-PASS  exists: android/app/build/outputs/bundle/release/app-release.aab (3255089 bytes)
+PASS  exists: android/app/build/outputs/bundle/release/app-release.aab (3285290 bytes)
 PASS  exists: android/app/build/outputs/apk/sideload/app-sideload.apk (3497010 bytes)
-PASS  exists: android/app/build/outputs/apk/release/app-release-unsigned.apk (3488818 bytes)
+PASS  exists: android/app/build/outputs/apk/release/app-release.apk (3497010 bytes)
 
 package: name='com.nursecalcpro.app' versionCode='4' versionName='1.2.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
 targetSdkVersion:'36'
@@ -31,7 +31,13 @@ PASS  AAB versionName 1.2.0
 AAB versionCode: versionCode="4"
 
 PASS  sideload APK signature verifies
-PASS  AAB is unsigned when no upload key is configured (never test-signed)
-AAB signing: UNSIGNED — add the upload-key secrets (docs/ANDROID_RELEASE.md) to produce an uploadable AAB
+PASS  release APK signed with upload key
+PASS  release APK NOT signed with the public test key
+PASS  AAB is signed (jar verified)
+AAB certificate SHA-256: a9adbde4b100274fcb73fb3e2df628193bddb46131373597084726fbc13f4073
+PASS  AAB NOT signed with the public test key
+PASS  AAB certificate matches the upload key
+PASS  release APK certificate matches the upload key
+AAB signing: SIGNED with the private upload key
 
 Result: 0 failed check(s)
