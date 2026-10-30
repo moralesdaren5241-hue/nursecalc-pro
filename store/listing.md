@@ -23,7 +23,7 @@ NurseCalc Pro is a calculation and study aid for nursing students and nurses. Ev
 
 It works completely offline, has no account and no ads, and does not collect any personal or health data.
 
-CALCULATORS (60+ tools in 15 areas)
+CALCULATORS (61 tools in 16 categories)
 • Medication: dose from strength on hand (D ÷ H × Q), weight-based mg/kg/dose and mg/kg/day, dose by body surface area, dose range check against a range you enter, dilution (C1V1 = C2V2), reconstitution, insulin volume, heparin and other units-based infusions, supply quantity, percent and ratio strength
 • IV therapy: pump rate (mL/hr), gravity drip rate (gtt/min), infusion duration, completion time, volume infused and remaining, sequential bags, dose to pump rate and pump rate to dose (mcg/kg/min, mcg/min, mg/hr and more)
 • Body measurements: BMI, body surface area (Mosteller), ideal and adjusted body weight (Devine), weight change, waist-to-height ratio
@@ -103,7 +103,7 @@ https://github.com/moralesdaren5241-hue/nursecalc-pro/blob/main/PRIVACY.md
 
 | Asset | File | Play requirement |
 |---|---|---|
-| App icon | `store/graphics/play-icon-512.png` | 512 × 512 PNG, full square (Play applies the mask) |
+| App icon | `store/graphics/play-icon-512.png` | 512 × 512 32-bit PNG (RGBA), full square (Play applies the mask) |
 | Feature graphic | `store/graphics/feature-graphic-1024x500.png` | 1024 × 500 JPG/PNG, no alpha |
 | Phone screenshots | `store/screenshots/phone-01 … phone-07` | 2–8 images, 1080 × 1920 (9:16) |
 
