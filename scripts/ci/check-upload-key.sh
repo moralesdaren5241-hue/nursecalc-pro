@@ -48,12 +48,14 @@ case "$MAGIC" in
   *) err "The decoded secret is not a Java keystore (it starts with bytes $MAGIC; size $(stat -c%s "$KS") bytes). Encode the .jks file itself, not a text file or a copy of its contents."
      rm -f "$KS"; exit 1 ;;
 esac
-echo "Decoded keystore: $(stat -c%s "$KS") bytes, format $KTYPE"
+KSIZE="$(stat -c%s "$KS")"; KHASH="$(sha256sum "$KS" | cut -c1-16)"
+FILEID="decoded file: $KSIZE bytes, $KTYPE, SHA-256 starts $KHASH — compare with your nursecalc-upload.jks"
+echo "Decoded keystore: $FILEID"
 
 # 1. Store password
 if ! LIST="$(keytool -list -keystore "$KS" -storepass:env NURSECALC_UPLOAD_STORE_PASSWORD 2>&1)"; then
   if grep -qiE 'password was incorrect|keystore password was incorrect|tampered' <<<"$LIST"; then
-    err "ANDROID_UPLOAD_STORE_PASSWORD does not open this keystore (wrong password)."
+    err "ANDROID_UPLOAD_STORE_PASSWORD does not open this keystore (wrong password, or the base64 secret is from a different .jks file). $FILEID."
   else
     err "keytool could not read the keystore: $(grep -v 'JAVA_TOOL_OPTIONS' <<<"$LIST" | grep -m1 -iE 'error|exception' | sed 's/keytool error: //')"
   fi
