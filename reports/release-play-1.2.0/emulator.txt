@@ -1,4 +1,4 @@
-NurseCalc Pro emulator smoke test — 2026-10-29T22:29:59Z
+NurseCalc Pro emulator smoke test — 2026-10-30T11:19:41Z
 Device: sdk_gphone64_x86_64, Android 16 (API 36)
 WebView:   Current WebView package (name, version): (com.google.android.webview, 133.0.6943.137)
 APK: apk/app-sideload.apk (3497010 bytes)
@@ -16,8 +16,8 @@ Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
 Status: ok
 LaunchState: COLD
 Activity: com.nursecalcpro.app/.MainActivity
-TotalTime: 5893
-WaitTime: 5940
+TotalTime: 6215
+WaitTime: 6223
 Complete
 PASS  cold launch reports Status: ok
 PASS  home screen rendered (web content visible)
@@ -46,8 +46,8 @@ Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
 Status: ok
 LaunchState: WARM
 Activity: com.nursecalcpro.app/.MainActivity
-TotalTime: 918
-WaitTime: 927
+TotalTime: 1128
+WaitTime: 1149
 Complete
 PASS  relaunch
 PASS  app left foreground on HOME
@@ -56,8 +56,8 @@ Warning: Activity not started, its current task has been brought to the front
 Status: ok
 LaunchState: HOT
 Activity: com.nursecalcpro.app/.MainActivity
-TotalTime: 141
-WaitTime: 160
+TotalTime: 316
+WaitTime: 331
 Complete
 PASS  resume from background
 PASS  content intact after resume
@@ -67,8 +67,8 @@ Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
 Status: ok
 LaunchState: COLD
 Activity: com.nursecalcpro.app/.MainActivity
-TotalTime: 1858
-WaitTime: 1866
+TotalTime: 1544
+WaitTime: 1549
 Complete
 PASS  launch after force-stop
 PASS  content after restart
@@ -83,8 +83,8 @@ Starting: Intent { cmp=com.nursecalcpro.app/.MainActivity }
 Status: ok
 LaunchState: COLD
 Activity: com.nursecalcpro.app/.MainActivity
-TotalTime: 1183
-WaitTime: 1185
+TotalTime: 2016
+WaitTime: 2021
 Complete
 PASS  dark mode renders
       screenshot 07-dark.png
