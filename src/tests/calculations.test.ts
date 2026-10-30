@@ -289,7 +289,7 @@ describe('nutrition, renal, lab, transfusion, obstetric, wound', () => {
     expect(val(cl.cockcroftGault({ age: 60, weightKg: 70, scrMgDl: 1, sex: 'female', weightLabel: 'actual' }))).toBeCloseTo(66.1111, 3);
     err(cl.cockcroftGault({ age: 10, weightKg: 30, scrMgDl: 0.5, sex: 'male', weightLabel: 'actual' }));
     // µmol/L conversion
-    expect(convert(88.42, 'cr_umol', 'cr_mgdl')).toBeCloseTo(1, 10);
+    expect(convert(88.4, 'cr_umol', 'cr_mgdl')).toBeCloseTo(1, 10);
   });
   it('glucose', () => {
     expect(val(cl.glucoseConvert({ value: 180.16, from: 'glu_mgdl' }))).toBeCloseTo(10, 10);

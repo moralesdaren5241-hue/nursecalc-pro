@@ -2,5 +2,19 @@
   "appId": "com.nursecalcpro.app",
   "appName": "NurseCalc Pro",
   "webDir": "dist",
-  "android": { "allowMixedContent": false, "webContentsDebuggingEnabled": false }
+  "loggingBehavior": "none",
+  "android": {
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false,
+    "minWebViewVersion": 87
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "style": "DEFAULT"
+    }
+  },
+  "server": {
+    "errorPath": "webview-update.html"
+  }
 }

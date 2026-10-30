@@ -1,42 +1,98 @@
 apply plugin: 'com.android.application'
 
+// ---------------------------------------------------------------------------
+// Release (Google Play upload) signing
+//
+// The upload key is NEVER stored in this repository. It is read from, in order:
+//   1. environment variables (used by GitHub Actions secrets):
+//        NURSECALC_UPLOAD_STORE_FILE, NURSECALC_UPLOAD_STORE_PASSWORD,
+//        NURSECALC_UPLOAD_KEY_ALIAS,  NURSECALC_UPLOAD_KEY_PASSWORD
+//   2. android/keystore.properties (git-ignored) with keys
+//        storeFile, storePassword, keyAlias, keyPassword
+// If neither is present the release build is produced UNSIGNED, and Play will
+// reject it until it is signed with the upload key. See docs/ANDROID_RELEASE.md.
+// ---------------------------------------------------------------------------
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file('keystore.properties')
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+def signingValue = { String envName, String propName ->
+    def v = System.getenv(envName)
+    return (v != null && !v.isEmpty()) ? v : keystoreProps.getProperty(propName)
+}
+def uploadStoreFile = signingValue('NURSECALC_UPLOAD_STORE_FILE', 'storeFile')
+def hasUploadKey = uploadStoreFile != null && file(uploadStoreFile).exists()
+
 android {
-    namespace "com.nursecalcpro.app"
-    compileSdk rootProject.ext.compileSdkVersion
+    namespace = "com.nursecalcpro.app"
+    compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.nursecalcpro.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "1.1.1"
+        // versionCode must increase for every upload to Play; versionName must match package.json.
+        versionCode 4
+        versionName "1.2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
-            ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-    // Fixed TEST signing key (committed on purpose, password is public) so every
-    // sideloaded APK installs over the previous one. Never use it for the Play Store:
-    // create a private upload key for a store release.
+
     signingConfigs {
+        // PUBLIC test key, committed on purpose so sideloaded test APKs install over
+        // each other. Its password is public. It is used ONLY by the `debug` and
+        // `sideload` build types and must never sign a Play upload.
         nursecalcTest {
             storeFile file('nursecalc-test.keystore')
             storePassword 'nursecalc-test'
             keyAlias 'nursecalc'
             keyPassword 'nursecalc-test'
         }
+        if (hasUploadKey) {
+            upload {
+                storeFile file(uploadStoreFile)
+                storePassword signingValue('NURSECALC_UPLOAD_STORE_PASSWORD', 'storePassword')
+                keyAlias signingValue('NURSECALC_UPLOAD_KEY_ALIAS', 'keyAlias')
+                keyPassword signingValue('NURSECALC_UPLOAD_KEY_PASSWORD', 'keyPassword')
+            }
+        }
     }
+
     buildTypes {
         debug {
             signingConfig signingConfigs.nursecalcTest
         }
         release {
-            signingConfig signingConfigs.nursecalcTest
+            // Play upload build. Signed only with the private upload key; otherwise unsigned.
+            signingConfig hasUploadKey ? signingConfigs.upload : null
+            debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        sideload {
+            // Same code and settings as release, signed with the public test key, for
+            // testers who install the APK from GitHub Releases. Not for the Play Store.
+            initWith release
+            signingConfig signingConfigs.nursecalcTest
+            matchingFallbacks = ['release']
+        }
     }
+
+    lint {
+        // lintVital still blocks release builds on fatal issues; the full report is informational.
+        abortOnError = false
+        checkReleaseBuilds = true
+        textReport = true
+        textOutput = layout.buildDirectory.file('reports/lint-results.txt').get().asFile
+    }
+}
+
+if (!hasUploadKey) {
+    logger.warn('NurseCalc Pro: no upload keystore configured — the release build will be UNSIGNED. See docs/ANDROID_RELEASE.md.')
 }
 
 repositories {
@@ -58,12 +114,3 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
-
-try {
-    def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
-        apply plugin: 'com.google.gms.google-services'
-    }
-} catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
-}

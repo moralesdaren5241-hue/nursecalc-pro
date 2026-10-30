@@ -1,64 +1,211 @@
-name: Android APK
+name: Android build, verify & test
 
+# Builds the Play upload bundle (AAB), a release APK and a sideload test APK,
+# verifies them (target SDK, permissions, signing, bundled assets), runs an
+# emulator smoke test, and publishes reports/screenshots to the `ci-reports` branch.
 on:
   push:
-    branches: [main]
+    branches: [main, 'release/**']
+  pull_request:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  apk:
+  web:
+    name: Typecheck, test, audit, web build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
+      - run: npm ci
+      - name: Dependency audit (fails on high/critical)
+        run: npm audit --audit-level=high
+      - run: npm run typecheck
+      - name: Unit, verification and UI tests
+        run: npm test
+      - run: npm run build
 
-      - uses: actions/setup-java@v4
+  android:
+    name: Build and verify AAB / APKs
+    needs: web
+    runs-on: ubuntu-latest
+    env:
+      UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+      NURSECALC_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_STORE_PASSWORD }}
+      NURSECALC_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+      NURSECALC_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
-
-      - name: Install
-        run: npm ci
-
-      - name: Test (the APK is only built if every test passes)
-        run: npm test
-
-      - name: Build web app and copy into Android project
+          java-version: 21
+          cache: gradle
+      - run: npm ci
+      - name: Build web app and copy into the Android project
         run: |
           npm run build
           npx cap sync android
 
-      - name: Build APK
+      - name: Restore upload keystore from secrets (if configured)
+        run: |
+          if [ -n "$UPLOAD_KEYSTORE_BASE64" ]; then
+            echo "$UPLOAD_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            echo "NURSECALC_UPLOAD_STORE_FILE=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+            echo "NURSECALC_HAS_UPLOAD_KEY=true" >> "$GITHUB_ENV"
+            echo "Upload keystore configured: the AAB will be signed for Play upload."
+          else
+            echo "NURSECALC_HAS_UPLOAD_KEY=false" >> "$GITHUB_ENV"
+            echo "::warning::No upload keystore secret — the AAB will be UNSIGNED. See docs/ANDROID_RELEASE.md."
+          fi
+
+      - name: Gradle build (AAB, release APK, sideload APK, lint)
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew --no-daemon --stacktrace bundleRelease assembleRelease assembleSideload lintRelease
 
+      - name: Verify build outputs
+        run: bash scripts/ci/verify-android.sh ci-report
+
+      - name: Collect lint report
+        if: always()
+        run: |
+          mkdir -p ci-report
+          cp android/app/build/reports/lint-results.txt ci-report/ 2>/dev/null || echo "no lint report" > ci-report/lint-results.txt
+
+      - name: Remove restored keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload.jks"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: NurseCalcPro-play-bundle
+          path: android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: NurseCalcPro-release-apk
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: NurseCalcPro-sideload-apk
+          path: android/app/build/outputs/apk/sideload/app-sideload.apk
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-report
+          path: ci-report/
+
+  emulator:
+    name: Emulator smoke test (API 36)
+    needs: android
+    # Runs even if verification failed, so its report is always published; the
+    # sideload release below still requires every job to succeed.
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # to publish the report to the ci-reports branch
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: NurseCalcPro-sideload-apk
+          path: apk
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-report
+          path: ci-report
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run smoke test on emulator
+        id: smoke
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: bash scripts/ci/emulator-smoke.sh apk/app-sideload.apk ci-report
+
+      - name: Publish report to ci-reports branch
+        if: always()
+        env:
+          REF_NAME: ${{ github.head_ref || github.ref_name }}
+        run: |
+          set -e
+          DEST="reports/${REF_NAME//\//-}"
+          {
+            echo "commit: $GITHUB_SHA"
+            echo "ref: $REF_NAME"
+            echo "run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo "smoke outcome: ${{ steps.smoke.outcome }}"
+          } > ci-report/RUN.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch --depth 1 origin ci-reports 2>/dev/null; then
+            git worktree add "$RUNNER_TEMP/reports" FETCH_HEAD
+            git -C "$RUNNER_TEMP/reports" switch -c ci-reports
+          else
+            git worktree add --detach "$RUNNER_TEMP/reports"
+            git -C "$RUNNER_TEMP/reports" switch --orphan ci-reports
+          fi
+          rm -rf "$RUNNER_TEMP/reports/$DEST"
+          mkdir -p "$RUNNER_TEMP/reports/$DEST"
+          cp -r ci-report/. "$RUNNER_TEMP/reports/$DEST/"
+          cd "$RUNNER_TEMP/reports"
+          git add -A
+          git commit -m "CI report for $REF_NAME @ ${GITHUB_SHA::7}" || echo "nothing to commit"
+          git push origin ci-reports
+
+  publish-sideload:
+    name: Publish sideload test APK
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [android, emulator]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: NurseCalcPro-sideload-apk
+          path: apk
       - name: Name the APK
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          cp android/app/build/outputs/apk/release/app-release.apk "NurseCalcPro-$VERSION.apk"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: NurseCalcPro-apk
-          path: NurseCalcPro-*.apk
-
-      - name: Publish as the latest download
-        uses: softprops/action-gh-release@v2
+          cp apk/app-sideload.apk "NurseCalcPro-$VERSION-test.apk"
+      - uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}-build${{ github.run_number }}
-          name: NurseCalc Pro ${{ env.VERSION }} (build ${{ github.run_number }})
+          name: NurseCalc Pro ${{ env.VERSION }} test build ${{ github.run_number }}
           make_latest: true
-          files: NurseCalcPro-*.apk
+          files: NurseCalcPro-*-test.apk
           body: |
-            Android test build. Open this page on your phone, tap the .apk, and allow "Install unknown apps" when asked.
-            Signed with a public test key — for testing and sideloading only, not for the Play Store.
+            Android **test** build for sideloading. Open this page on your phone, tap the .apk, and allow "Install unknown apps" when asked.
+            Signed with a PUBLIC test key — for testing only. The Google Play version is a separate build signed through Play App Signing;
+            uninstall this test build before installing from Google Play.

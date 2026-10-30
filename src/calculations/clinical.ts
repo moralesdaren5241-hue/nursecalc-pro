@@ -240,7 +240,7 @@ export function creatinineConvert(i: { value: number; from: 'cr_mgdl' | 'cr_umol
     const to = i.from === 'cr_mgdl' ? 'cr_umol' : 'cr_mgdl';
     const v = convert(i.value, i.from, to);
     const lbl = to === 'cr_umol' ? 'µmol/L' : 'mg/dL';
-    return ok({ value: v, unit: lbl, display: fmt(v, to === 'cr_umol' ? 0 : 2), formula: '1 mg/dL creatinine = 88.42 µmol/L', substitution: i.from === 'cr_mgdl' ? `${fmt(i.value, 3)} × 88.42` : `${fmt(i.value, 1)} ÷ 88.42`, steps: [`= ${fmt(v, 4)} ${lbl}`], rounding: to === 'cr_umol' ? 'Whole µmol/L.' : '2 dp.', notes: [] });
+    return ok({ value: v, unit: lbl, display: fmt(v, to === 'cr_umol' ? 0 : 2), formula: '1 mg/dL creatinine = 88.4 µmol/L', substitution: i.from === 'cr_mgdl' ? `${fmt(i.value, 3)} × 88.4` : `${fmt(i.value, 1)} ÷ 88.4`, steps: [`= ${fmt(v, 4)} ${lbl}`], rounding: to === 'cr_umol' ? 'Whole µmol/L.' : '2 dp.', notes: [] });
   });
 }
 
@@ -311,7 +311,7 @@ export function naegele(i: { lmp: string; today: string; cycleDays?: number }): 
     const edd = new Date((lmp as Date).getTime() + (280 + adj) * DAY);
     const gaDays = Math.round(((today as Date).getTime() - (lmp as Date).getTime()) / DAY) - adj;
     return ok({
-      value: gaDays, unit: 'days', display: iso(edd),
+      value: gaDays, unit: 'days', display: iso(edd), displayUnit: 'EDD',
       formula: 'EDD = LMP + 280 days (Naegele: LMP + 1 year − 3 months + 7 days), adjusted for cycle length',
       substitution: `${i.lmp} + ${280 + adj} days`,
       steps: [`EDD = ${iso(edd)}`, `Gestational age on ${i.today} = ${Math.floor(gaDays / 7)} weeks ${gaDays % 7} days`],

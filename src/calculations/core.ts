@@ -20,6 +20,11 @@ export interface CalcOk {
   unit: string;
   /** Value as it should be displayed (rounded per `rounding`). */
   display: string;
+  /**
+   * Unit label shown next to `display`, when it differs from `unit` (the unit of
+   * `value`) — e.g. a due date displayed while `value` is gestational age in days.
+   */
+  displayUnit?: string;
   formula: string;
   substitution: string;
   steps: string[];

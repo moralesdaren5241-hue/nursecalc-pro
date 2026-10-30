@@ -11,7 +11,7 @@ const DIMS: { dim: Dimension; name: string; note?: string }[] = [
   { dim: 'time', name: 'Time' },
   { dim: 'temperature', name: 'Temperature' },
   { dim: 'glucose', name: 'Glucose', note: 'Glucose only (molar mass 180.16 g/mol). Other analytes use different factors.' },
-  { dim: 'creatinine', name: 'Creatinine', note: 'Creatinine only (1 mg/dL = 88.42 µmol/L).' },
+  { dim: 'creatinine', name: 'Creatinine', note: 'Creatinine only (1 mg/dL = 88.4 µmol/L).' },
   { dim: 'pressure', name: 'Pressure' },
   { dim: 'massConc', name: 'Concentration', note: 'Mass per volume only. % here means w/v (g per 100 mL).' },
 ];

@@ -6,53 +6,66 @@ Offline-capable nursing calculation, scoring and learning app. Every result show
 
 ---
 
-## 1. Stack and why
+## 1. Stack
 
 | Layer | Choice |
 |---|---|
 | UI | React 18 + TypeScript (strict, `noUncheckedIndexedAccess`) |
-| Build | Vite 5 + `vite-plugin-singlefile` → one self-contained `index.html` |
-| Delivery | Installable PWA (manifest + cache-first service worker) |
-| Tests | Vitest (unit, table-driven) + Testing Library on jsdom (integration/UI) |
+| Build | Vite 7 + `vite-plugin-singlefile` → one self-contained `index.html` (JS target Chrome 87 / Safari 14) |
+| Web delivery | Installable PWA (manifest + cache-first service worker), static hosting |
+| Android | Capacitor 8 (`com.nursecalcpro.app`), minSdk 24, target/compile SDK 36, AGP 8.13, Gradle 8.14, JDK 21 |
+| Tests | Vitest 4 (unit, table-driven, hand-derived verification, fuzz) + Testing Library on jsdom (UI) |
 | Storage | `localStorage` for preferences, favorites, recents and study progress only |
 
-The brief prefers React Native + Expo. This build environment cannot run an Android/iOS simulator, so an Expo build could not be verified. A PWA was chosen instead because it can be built and tested here, installs to the home screen on Android and iOS, and runs fully offline. The calculation engine (`src/calculations`), clinical references and learning content contain **no UI code**, so they can be reused unchanged in an Expo app later.
-
-No backend, accounts, analytics or network calls. Fonts (Atkinson Hyperlegible, IBM Plex Mono — SIL OFL, licences in `src/assets/fonts/`) are embedded in the build, so the app makes **no** external requests.
+No backend, accounts, analytics, ads, crash reporting or network calls. The Android app requests
+**no permissions** (not even INTERNET). Fonts (Atkinson Hyperlegible, IBM Plex Mono — SIL OFL,
+licences in `src/assets/fonts/`) are embedded, so the app makes no external requests.
 
 ## 2. Run, test, build
 
+Requires Node 22+.
+
 ```bash
-npm install
+npm ci
 npm run dev        # local dev server
-npm test           # 107 automated tests
+npm test           # 336 automated tests
 npm run typecheck  # strict TypeScript
-npm run build      # dist/index.html (single file) + manifest, icon, service worker
-node scripts/artifact.mjs   # body-only copy for claude.ai artifact hosting
+npm run build      # dist/index.html (single file) + manifest, icons, service worker, _headers
+npm audit          # dependency audit (CI fails on high/critical)
 ```
 
-No environment variables are required.
+No environment variables are required (see `.env.example`).
 
-### Android package (Capacitor 6 — project already generated in `android/`)
+### Android
 
-Requirements on your computer: Node 18+, JDK 17, Android Studio (Android SDK 34).
+Full guide: **[docs/ANDROID_RELEASE.md](docs/ANDROID_RELEASE.md)** (upload key, GitHub secrets, local builds, versioning).
 
 ```bash
-npm install
-npm run android:sync      # build web app and copy it into android/
-npm run android:apk       # debug APK → android/app/build/outputs/apk/debug/app-debug.apk
-npm run android:open      # or open in Android Studio and use Build ▸ Build APK(s)
-npm run android:release   # release bundle (.aab) for Play — configure signing first
+npm run android:sync      # web build + copy into android/
+cd android
+./gradlew bundleRelease   # Play upload bundle (signed only if an upload key is configured)
+./gradlew assembleSideload  # test APK signed with the public test key
 ```
 
-Before a Play Store release: change `appId` in `capacitor.config.json` (currently `com.nursecalcpro.app`), set up a signing key, and check Google Play's current target-API requirement (the generated project targets API 34; recent Play policy requires a newer target, which may mean upgrading to Capacitor 7).
+Every push to `main` / `release/**` builds the AAB and APKs in GitHub Actions, verifies them
+(`scripts/ci/verify-android.sh`) and runs an emulator smoke test on Android 16 / API 36
+(`scripts/ci/emulator-smoke.sh`). Reports and screenshots go to the `ci-reports` branch.
 
-**Build status:** the Android project was generated, but `./gradlew assembleDebug` could not run in the build environment because downloading Gradle, the Android SDK and Google Maven was blocked. **No APK has been compiled or installed on a device.**
+### Web
 
-### Other ways to install
+Guide: **[docs/WEB_DEPLOY.md](docs/WEB_DEPLOY.md)** — GitHub Pages (workflow included), Netlify or Cloudflare Pages.
 
-- **Install as an app (works today):** host `dist/` on any HTTPS static host (Netlify, GitHub Pages, Render static site, Cloudflare Pages). Open it on the phone → Chrome menu *Install app* (Android) or Safari *Share → Add to Home Screen* (iOS). The service worker caches it for offline use.
-- **iOS:** `npm i @capacitor/ios@6 && npx cap add ios && npx cap open ios`, then build in Xcode on a Mac. Not attempted.
+### Documentation
+
+| Document | Contents |
+|---|---|
+| [docs/CALCULATIONS.md](docs/CALCULATIONS.md) | Every calculator's formula, units, rounding, validation, source cross-checks |
+| [docs/TESTING.md](docs/TESTING.md) | Test report: what ran, results, what was not tested |
+| [docs/PRIVACY_SECURITY_AUDIT.md](docs/PRIVACY_SECURITY_AUDIT.md) | Privacy/security findings and data inventory |
+| [PRIVACY.md](PRIVACY.md) | Privacy policy (linked in the app and the Play listing) |
+| [docs/PLAY_SUBMISSION.md](docs/PLAY_SUBMISSION.md) | Play Console declarations, health-app notes, release tracks, checklist |
+| [store/listing.md](store/listing.md) | Store listing text; graphics and screenshots in `store/` |
+| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common build/install problems |
 
 ## 3. Architecture
 
@@ -113,16 +126,15 @@ Clinical navy primary, teal accent, cool-grey neutrals; amber for "check", red r
 - Results never say "safe", "correct" or "approved".
 - Fluid log and calculator inputs are never stored.
 
-## 8. Tests (last run: **252 passed, 0 failed** — v1.1.0 audit)
+## 8. Tests
 
-- `calculations.test.ts` — 72 table-driven tests, including every case required by the brief (2 tablets, 2.5 mL, 2 mL, 125 mL/hr, 31.25 gtt/min, 6 h, BMI 23.4375, GCS 13/15 and NT handling, +500 mL, MAP 93.33, 4-2-1 = 65 mL/hr, 0.5 mL/kg/hr, oxygen factors/reserve/flow) plus zero denominators, negatives, missing fields, unit mismatches, float precision, rounding, midnight crossing, huge values and invalid reference ranges.
-- `questions.test.ts` — every question template generated 300 times; each answer key is computed independently and cross-checked against the engine.
-- `verification.test.ts` — 139 tests: 39 values derived by hand/in a separate Python session (not copied from the engine), display-rounding checks, Glasgow-Blatchford band boundaries, strict number parsing, and a fuzz test feeding every engine function NaN/±Infinity/negative/zero/1e-9/1e308 combinations (must never throw or return a non-finite result).
-- `ui.test.tsx` — renders the app, search, form validation, GCS cards, high-alert gate, fluid log, converter, favorites persistence, quiz progress, dark theme, and opens **every** form calculator and runs its example.
+**336 tests, 0 failures** (v1.2.0, 30 Oct 2026). Details and the device-level results: [docs/TESTING.md](docs/TESTING.md).
 
-**Real-browser QA (headless Chromium 131, v1.1.0):** offline reload and cold open via the service worker (app loads, drip-rate example returns 31, embedded font loads); all 63 directory entries opened and their examples calculated at 320 px light and 360 px dark with no horizontal overflow and no console errors; axe-core WCAG 2.1 AA + best-practice scans of 9 screens in both themes — 0 violations; system back button closes the current screen. Script: not shipped (lives in the build sandbox).
-
-Not tested: physical Android/iOS devices, TalkBack/VoiceOver walkthroughs, installed-PWA behaviour on a phone.
+- `calculations.test.ts` — table-driven engine tests: required cases, zero denominators, negatives, missing fields, unit mismatches, float precision, rounding, midnight crossing, huge values.
+- `verification.test.ts` — values derived by hand / in a separate Python session (not copied from the engine), display rounding, score band boundaries, strict number parsing, and a fuzz test (NaN/±Infinity/negative/zero/1e-9/1e308) that must never throw or return a non-finite result.
+- `questions.test.ts` — every question template generated repeatedly; answer keys computed independently and cross-checked against the engine.
+- `release-safety.test.ts` — unit handling end-to-end through the registry, hand-computed worked examples, high-risk guards (mcg vs mg, per-dose vs per-day, concentration units), an input sweep of every number field of every calculator, result labelling, reference integrity, and native-bridge inertness outside Android.
+- `ui.test.tsx` — renders the app and opens **every** form calculator and runs its example; search, validation, GCS, high-alert gate, fluid log, converter, favorites, quiz, dark theme.
 
 ## 9. Completed and deferred
 
@@ -136,13 +148,23 @@ Not tested: physical Android/iOS devices, TalkBack/VoiceOver walkthroughs, insta
 - Medication-specific renal dosing links and maximum-dose database — none (requires verified drug references).
 - Filipino localization — strings are not yet extracted into a translation file.
 - Wound / BMI / vital-sign trend history and growth charts — not implemented.
-- Native store builds (APK/IPA) — not built.
+- iOS (IPA) — not built; the web app installs to the iPhone home screen instead.
 
 ## 10. Clinical content status
 
-Every entry in `src/references/manifest.ts` carries source, population, version, reviewer and review date fields. All are currently `awaiting-review` with no reviewer. The citations are the standard literature sources for each formula, but they were **not** re-checked against primary documents during this build. Items that especially need reviewer attention: oxygen cylinder factors, blood-volume estimates, Glasgow-Blatchford thresholds, Bishop criteria version, GCS wording, and the CPR reference text. To sign off an entry, set `status: 'reviewed'`, `reviewer` and `lastReview`.
+Every entry in `src/references/manifest.ts` carries source, population, version, reviewer and review date fields. All are currently `awaiting-review` with no reviewer. The citations are the standard literature sources for each formula, but they were **not** re-checked against primary documents. On 30 Oct 2026, 11 named formulas were cross-checked against published secondary sources (each entry's `crossCheck` field; table in docs/CALCULATIONS.md) — an engineering check, not a clinical review. Items that especially need reviewer attention: oxygen cylinder factors, blood-volume estimates, Glasgow-Blatchford thresholds, Bishop criteria version, GCS wording, and the CPR reference text. To sign off an entry, set `status: 'reviewed'`, `reviewer` and `lastReview`.
 
-## 11. Audit log — v1.1.0 (2026-10-25)
+## 11. Known issues and limitations (v1.2.0)
+
+- **No clinical sign-off.** All references are `awaiting-review`. Do not market the app as clinically validated.
+- **Unsigned AAB until you add the upload key** — CI produces an unsigned bundle without the GitHub secrets (docs/ANDROID_RELEASE.md §3).
+- **Privacy-policy link returns 404 until this branch is merged to `main`** (the URL points at `main`).
+- **Web app not deployed** — GitHub Pages is not enabled on the repository yet (docs/WEB_DEPLOY.md). GitHub Pages cannot send the security headers in `public/_headers`.
+- Naegele cycle-length adjustment and blood-volume mL/kg values are not confirmed by a cited source.
+- Tested on the Android 16 emulator only; not on physical phones, tablets or with TalkBack.
+- English only.
+
+## 12. Audit log — v1.1.0 (2026-10-25)
 
 Defects found and fixed:
 1. **Comma decimals misread (critical):** "2,5" was parsed as 25 and "0,25" as 25. Inputs are now parsed strictly; comma decimals are refused with "Use a decimal point, not a comma". Thousands separators ("1,000") still work.

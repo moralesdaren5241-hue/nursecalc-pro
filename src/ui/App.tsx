@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAppStore } from '../storage/store';
+import { onAndroidBack, syncSystemBars } from '../native';
 import { Icon } from './icons';
 import { NavCtx, StoreCtx, type Nav, type Route, type Tab } from './nav';
 import { CalculatorScreen } from './screens/Calculator';
@@ -91,12 +92,26 @@ export function App() {
     h?.focus({ preventScroll: true });
   }, [tab, top ? routeKey(top) : '', stack.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Android/browser back button support within the app
+  // Keyboard Escape closes the current screen (desktop browsers).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && stack.length) back(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [stack.length, back]);
+
+  // Android back button (native shell only): close the current screen, then return
+  // to Home, and only exit the app from the root of Home.
+  const backState = useRef({ stackLen: 0, tab: 'home' as Tab, back, go });
+  backState.current = { stackLen: stack.length, tab, back, go };
+  useEffect(() => onAndroidBack(() => {
+    const st = backState.current;
+    if (st.stackLen > 0) { st.back(); return true; }
+    if (st.tab !== 'home') { st.go('home'); return true; }
+    return false;
+  }), []);
+
+  // Status-bar and navigation-bar icon colour follows the app theme on Android.
+  useEffect(() => { syncSystemBars(theme); }, [theme]);
 
   return (
     <StoreCtx.Provider value={store}>
