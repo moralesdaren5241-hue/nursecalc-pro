@@ -55,7 +55,12 @@ echo "Decoded keystore: $FILEID"
 # 1. Store password
 if ! LIST="$(keytool -list -keystore "$KS" -storepass:env NURSECALC_UPLOAD_STORE_PASSWORD 2>&1)"; then
   if grep -qiE 'password was incorrect|keystore password was incorrect|tampered' <<<"$LIST"; then
-    err "ANDROID_UPLOAD_STORE_PASSWORD does not open this keystore (wrong password, or the base64 secret is from a different .jks file). $FILEID."
+    TRIMMED="$(printf '%s' "$NURSECALC_UPLOAD_STORE_PASSWORD" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+    if [ "$TRIMMED" != "$NURSECALC_UPLOAD_STORE_PASSWORD" ] && NC_TRIMMED="$TRIMMED" keytool -list -keystore "$KS" -storepass:env NC_TRIMMED >/dev/null 2>&1; then
+      err "ANDROID_UPLOAD_STORE_PASSWORD has an extra space or line break at the start or end. Edit the secret and paste the password with nothing before or after it. (Check ANDROID_UPLOAD_KEY_PASSWORD the same way.)"
+    else
+      err "ANDROID_UPLOAD_STORE_PASSWORD does not open this keystore (wrong password, or the base64 secret is from a different .jks file). $FILEID."
+    fi
   else
     err "keytool could not read the keystore: $(grep -v 'JAVA_TOOL_OPTIONS' <<<"$LIST" | grep -m1 -iE 'error|exception' | sed 's/keytool error: //')"
   fi
